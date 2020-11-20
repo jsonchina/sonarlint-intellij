@@ -37,6 +37,7 @@ import org.sonarlint.intellij.core.BoundProject
 import org.sonarlint.intellij.core.ProjectBindingAssistant
 import org.sonarlint.intellij.editor.SonarLintHighlighting
 import org.sonarlint.intellij.eq
+import org.sonarlint.intellij.telemetry.SonarLintTelemetry
 import org.sonarlint.intellij.ui.BalloonNotifier
 import org.sonarsource.sonarlint.core.client.api.common.TextRange
 import org.sonarsource.sonarlint.core.client.api.connected.RemoteHotspot
@@ -64,6 +65,7 @@ class SecurityHotspotShowRequestHandlerTest : AbstractSonarLintLightTests() {
     private lateinit var balloonNotifier: BalloonNotifier
     private lateinit var toolWindow: SonarLintToolWindow
     private lateinit var highlighter: SonarLintHighlighting
+    private lateinit var telemetry: SonarLintTelemetry
     private lateinit var requestHandler: SecurityHotspotShowRequestHandler
 
     @Before
@@ -71,11 +73,19 @@ class SecurityHotspotShowRequestHandlerTest : AbstractSonarLintLightTests() {
         wsHelper = mock(WsHelper::class.java)
         projectBindingAssistant = mock(ProjectBindingAssistant::class.java)
         balloonNotifier = mock(BalloonNotifier::class.java)
-        requestHandler = SecurityHotspotShowRequestHandler(projectBindingAssistant, wsHelper, balloonNotifier)
+        telemetry = mock(SonarLintTelemetry::class.java)
+        requestHandler = SecurityHotspotShowRequestHandler(projectBindingAssistant, wsHelper, balloonNotifier, telemetry)
         toolWindow = mock(SonarLintToolWindow::class.java)
         highlighter = mock(SonarLintHighlighting::class.java)
         replaceProjectService(SonarLintToolWindow::class.java, toolWindow)
         replaceProjectService(SonarLintHighlighting::class.java, highlighter)
+    }
+
+    @Test
+    fun it_should_inform_telemetry_that_a_request_is_received() {
+        requestHandler.open(PROJECT_KEY, HOTSPOT_KEY, CONNECTED_URL)
+
+        verify(telemetry).showHotspotRequestReceived()
     }
 
     @Test

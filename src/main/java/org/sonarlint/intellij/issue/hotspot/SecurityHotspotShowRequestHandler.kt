@@ -26,6 +26,7 @@ import org.sonarlint.intellij.config.global.ServerConnection
 import org.sonarlint.intellij.core.ProjectBindingAssistant
 import org.sonarlint.intellij.core.SecurityHotspotMatcher
 import org.sonarlint.intellij.editor.SonarLintHighlighting
+import org.sonarlint.intellij.telemetry.SonarLintTelemetry
 import org.sonarlint.intellij.ui.BalloonNotifier
 import org.sonarlint.intellij.ui.BalloonNotifier.Link
 import org.sonarlint.intellij.util.SonarLintUtils
@@ -42,10 +43,12 @@ const val FILE_NOT_FOUND_MESSAGE = "Cannot find hotspot file in the project."
 open class SecurityHotspotShowRequestHandler(
         private val projectBindingAssistant: ProjectBindingAssistant = ProjectBindingAssistant("Opening Security Hotspot..."),
         private val wsHelper: WsHelper = WsHelperImpl(),
-        private val balloonNotifier: BalloonNotifier = BalloonNotifier()
+        private val balloonNotifier: BalloonNotifier = BalloonNotifier(),
+        private val telemetry: SonarLintTelemetry = getService(SonarLintTelemetry::class.java)
 ) {
 
     open fun open(projectKey: String, hotspotKey: String, serverUrl: String) {
+        telemetry.showHotspotRequestReceived()
         val (project, connection) = projectBindingAssistant.bind(projectKey, serverUrl) ?: return
 
         val balloonRetryLink = Link("Retry") { open(projectKey, hotspotKey, serverUrl) }
